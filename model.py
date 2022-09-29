@@ -21,6 +21,14 @@ class DoubleConv(nn.Module):
 
 class UNet(nn.Module):
 
-    def __init__(self, in_channels=3, out_channels=1):
+    def __init__(self, in_channels=3, out_channels=1, features=[64, 128, 256, 512]):
         super(UNet, self).__init__()
-        
+        self.downs = nn.ModuleList()
+        self.ups = nn.ModuleList()
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        #! down part of unet:
+        for feature in features:
+            self.downs.append(DoubleConv(in_channels, feature))
+            in_channels = feature
+
+        #! up part of unet:
