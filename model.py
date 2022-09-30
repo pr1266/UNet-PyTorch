@@ -5,6 +5,14 @@ import os
 
 os.system('cls')
 
+class PrintLayer(nn.Module):
+
+    def __init__(self, ):
+        super(PrintLayer, self).__init__()
+
+    def forward(self, x):
+        print(f'x.shape : {x.shape}')
+        return x
 class DoubleConv(nn.Module):
 
     def __init__(self, in_channels, out_channels):
