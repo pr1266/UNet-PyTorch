@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
 import torchvision.transforms.functional as TF
+import os
+
+os.system('cls')
 
 class DoubleConv(nn.Module):
 
@@ -35,7 +38,7 @@ class UNet(nn.Module):
         for feature in reversed(features):
             self.ups.append(
                 nn.ConvTranspose2d(
-                    features, feature, kernel_size=2, stride=2,
+                    feature*2, feature, kernel_size=2, stride=2,
                 )
             )
             self.ups.append(DoubleConv(feature*2, feature))
@@ -51,13 +54,29 @@ class UNet(nn.Module):
             x = self.pool(x)
 
         x = self.bottleneck(x)
-        skip_connections = skip_connections[::,-1]
+        skip_connections = skip_connections[::-1]
         for idx in range(0, len(self.ups), 2):
             x = self.ups[idx](x)
             #! single step:
             skip_connection = skip_connections[idx//2]
+            
+            if x.shape != skip_connection.shape:
+                x = TF.resize(x, size=skip_connection.shape[2:])
+            
             concat_skip = torch.cat((skip_connection, x), dim=1)
             x = self.ups[idx+1](concat_skip)
         
         return self.final_conv(x)
 
+
+def test():
+    x = torch.randn((3, 1, 160, 160))
+    model = UNet(1, 1)
+    preds = model(x)
+    print(preds.shape)
+    print(x.shape)
+    assert x.shape == preds.shape
+
+
+if __name__ == '__main__':
+    test()
